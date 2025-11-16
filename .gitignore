@@ -1,0 +1,10 @@
+agentops.log
+.env
+__pycache__/
+.vscode/
+.DS_Store
+*.pyc
+.idea/
+output
+.venv/
+ai-agent-output
