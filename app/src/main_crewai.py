@@ -8,12 +8,12 @@ customs_crew = Crew(
     agents=[
         search_queries_recommendation_agent,
         search_engine_agent,
-        scraping_agent,
+        #scraping_agent,
     ],
     tasks=[
         search_queries_recommendation_task,
         search_engine_task,
-        scraping_task,
+        #scraping_task,
     ],
     process=Process.sequential,
 )
@@ -26,8 +26,8 @@ crew_results = customs_crew.kickoff(
         #first agent inputs
         "product_category": "produits électroniques contrefaits",
         "platforms_list": [],
-        "no_keywords": 5,
-        "language": "Français",
+        "no_keywords": 10,
+        "language": "french",
         #second agent inputs
         "score_th": 0.1,
         "max_search_results": 3,
