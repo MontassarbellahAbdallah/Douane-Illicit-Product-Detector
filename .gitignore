@@ -8,3 +8,5 @@ __pycache__/
 output
 .venv/
 ai-agent-output
+keys.txt
+docker-compose.yml

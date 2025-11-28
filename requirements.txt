@@ -1,7 +1,0 @@
-crewai[tools,google-genai]
-agentops
-tavily-python
-scrapegraph-py
-dotenv
-google-generativeai
-scrapfly-sdk
