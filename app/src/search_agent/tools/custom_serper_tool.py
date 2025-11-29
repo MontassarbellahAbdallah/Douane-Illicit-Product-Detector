@@ -37,3 +37,4 @@ class CustomSerperTool(BaseTool):
                 })
 
         return json.dumps({"results": results})
+#TODO: Add time range filter to the search query (day, week, month, year)
