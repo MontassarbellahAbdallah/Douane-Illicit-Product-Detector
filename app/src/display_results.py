@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import json
 from typing import List, Dict
 import base64
@@ -355,36 +356,36 @@ def render_product_card(product: Dict):
     st.markdown('<div class="product-card">', unsafe_allow_html=True)
     # Image and Title
     col1, col2 = st.columns([1, 2])
-    
+
     with col1:
         if product.get('product_image_url'):
             st.markdown(f'<img src="{product["product_image_url"]}" class="product-image" />', unsafe_allow_html=True)
         else:
             st.markdown('<div class="product-image" style="background: #334155; display: flex; align-items: center; justify-content: center; color: #64748b;">Pas d\'image</div>', unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown(f'<div class="product-title">{product["product_title"]}</div>', unsafe_allow_html=True)
-        
+
         # Price Section
         price_html = '<div class="price-container">'
         price_html += f'<span class="current-price">{product["product_current_price"]:.2f} DT</span>'
-        
+
         if product.get('product_original_price') and product['product_original_price'] > product['product_current_price']:
             price_html += f'<span class="original-price">{product["product_original_price"]:.2f} DT</span>'
-            
+
         if product.get('product_discount_percentage') and product['product_discount_percentage'] > 0:
             price_html += f'<span class="discount-badge">-{product["product_discount_percentage"]:.0f}%</span>'
-        
+
         price_html += '</div>'
         st.markdown(price_html, unsafe_allow_html=True)
-        
+
         # Suspicion Score
         st.markdown(render_suspicion_score(product['suspicion_score']), unsafe_allow_html=True)
-        
+
         # CTA Button
         if product.get('product_url'):
-            st.markdown(f'<a href="{product["product_url"]}" target="_blank" class="cta-button">Voir le Produit</a>', unsafe_allow_html=True)
-    
+            st.markdown(f'<a href="{product["product_url"]}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 0.8rem 2rem; border-radius: 12px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); border: none; cursor: pointer; font-size: 1rem; font-family: \'Inter\', sans-serif;">Voir le Produit</a>', unsafe_allow_html=True)
+
     # Suspicion Reasons
     if product.get('suspicion_reasons'):
         st.markdown("### Raisons de Suspicion")
@@ -403,28 +404,89 @@ def render_product_card(product: Dict):
         specs_html += '</table>'
         st.markdown(specs_html, unsafe_allow_html=True)
 
+# Component: Search Results Table
+def render_search_results_table(results: List[Dict]):
+    if not results:
+        return
+
+    # Create HTML with inline CSS for the iframe
+    css = '''
+    <style>
+    .score-badge {
+        display: inline-block;
+        padding: 0.6rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .score-low {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    .score-medium {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+    .score-high {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
+    .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        font-family: 'Inter', sans-serif;
+    }
+    .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    }
+    </style>
+    '''
+
+    # Create HTML table
+    html = css + '<div style="overflow-x: auto; margin-top: 1rem;"><table style="width: 100%; border-collapse: collapse; background: rgba(30, 41, 59, 0.5); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);"><thead><tr style="background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%); color: white;"><th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2);">Titre du Produit</th><th style="padding: 1rem; text-align: center; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2);">Score de Suspicion</th><th style="padding: 1rem; text-align: center; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2);">Action</th></tr></thead><tbody>'
+
+    for i, result in enumerate(results):
+        score = result['display_score']
+        if score < 40:
+            badge_class = "score-low"
+        elif score < 70:
+            badge_class = "score-medium"
+        else:
+            badge_class = "score-high"
+
+        row_bg = "rgba(30, 41, 59, 0.3)" if i % 2 == 0 else "rgba(30, 41, 59, 0.5)"
+
+        html += f'<tr style="background: {row_bg}; border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 1rem; color: #f1f5f9; font-weight: 500; line-height: 1.4;">{result["title"]}</td><td style="padding: 1rem; text-align: center;"><span class="score-badge {badge_class}">{score}/100</span></td><td style="padding: 1rem; text-align: center;"><a href="{result["url"]}" target="_blank" class="cta-button">Voir le Produit</a></td></tr>'
+
+    html += '</tbody></table></div>'
+
+    components.html(html, height=400, scrolling=True)
+
 
 # Sidebar
 def render_sidebar(products: List[Dict]):
     with st.sidebar:
-        st.markdown("## Filtres & Options")
-        
-        # Suspicion Score Filter
-        st.markdown("### Score de Suspicion")
-        min_score, max_score = st.slider(
-            "Plage de score",
-            0, 100, (0, 100),
-            help="Filtrer par score de suspicion"
-        )
-        
-        st.markdown("---")
         st.markdown("### ℹ️ À Propos")
         st.markdown("""
         Cette application analyse automatiquement les produits en ligne pour détecter
         les contrefaçons potentielles basées sur plusieurs indicateurs.
         """)
 
-        return min_score, max_score
+        return 0, 100
 
 # Filter Products
 def filter_products(products: List[Dict], min_score: int, max_score: int):
@@ -437,17 +499,35 @@ def filter_products(products: List[Dict], min_score: int, max_score: int):
 def main():
     load_css()
 
-    # Load data from JSON file
+    # Load scraped products data
     with open('ai-agent-output/step_3_scraped_products.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+        scraped_data = json.load(f)
 
-    products = data.get('products', [])
+    scraped_products = scraped_data.get('products', [])
     # Adjust suspicion_score from 1-10 scale to 0-100 scale
-    for product in products:
+    for product in scraped_products:
         product['suspicion_score'] *= 10
         # Decode Unicode escapes in suspicion_reasons
         if 'suspicion_reasons' in product and product['suspicion_reasons']:
             product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
+
+    # Load search results data
+    with open('ai-agent-output/step_2_search_results.json', 'r', encoding='utf-8') as f:
+        search_data = json.load(f)
+
+    search_results = search_data.get('results', [])
+
+    # Get URLs of scraped products
+    scraped_urls = {product['page_url'] for product in scraped_products}
+
+    # Filter search results to exclude scraped ones
+    unscraped_results = [result for result in search_results if result['url'] not in scraped_urls]
+
+    # Convert search scores to display scale (0-100)
+    for result in unscraped_results:
+        result['display_score'] = round(result['score'] * 100)
+
+    products = scraped_products
     
     # Sidebar
     min_score, max_score = render_sidebar(products)
@@ -465,14 +545,22 @@ def main():
     # Products Section
     st.markdown("## Produits Détectés")
     st.markdown(f"*Affichage de {len(filtered_products)} produit(s)*")
-    
+
     if not filtered_products:
         st.warning("Aucun produit ne correspond aux filtres sélectionnés.")
     else:
         for product in filtered_products:
             render_product_card(product)
-    
-    
+
+    # Other Potential Products Section
+    if unscraped_results:
+        st.markdown("---")
+        st.markdown("## Autres Possibilités de Produits")
+        #st.markdown(f"*Affichage de {len(unscraped_results)} résultat(s) de recherche supplémentaire(s) non analysés en profondeur*")
+
+        render_search_results_table(unscraped_results)
+
+
 
 if __name__ == "__main__":
     main()
