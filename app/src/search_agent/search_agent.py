@@ -1,4 +1,6 @@
 
+# Developed by Montassar Bellah Abdallah
+
 from pydantic import BaseModel, Field
 from typing import List
 import os

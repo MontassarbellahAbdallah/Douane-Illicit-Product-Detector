@@ -1,12 +1,12 @@
-# Douane-Illicit-Product-Detector (En cours de développement)
+# Douane-Illicit-Product-Detector (Under Development)
 
 Intelligent multi-agent system built with **CrewAI** to monitor e-commerce platforms and combat digital fraud. It automatically scrapes, analyzes, and scores product listings to detect and prioritize illicit goods for efficient targeting by Tunisian Customs agents.
 
 ## Demo
 
-[![Demo Video](https://img.youtube.com/vi/placeholder/0.jpg)](demo3011.mp4)
+![Demo GIF](Douane_demo_301125.gif)
 
-*Click to watch the demo video showing the system in action.*
+*Demo showing the system in action.*
 
 ## Features
 
@@ -14,4 +14,8 @@ Intelligent multi-agent system built with **CrewAI** to monitor e-commerce platf
 - Automated web scraping of e-commerce platforms
 - Intelligent product analysis and scoring
 - Real-time dashboard for customs agents
-- Focus on Tunisian market
+- Focus on Tunisian market (.tn domains)
+
+## Author
+
+Developed by **Montassar Bellah Abdallah**

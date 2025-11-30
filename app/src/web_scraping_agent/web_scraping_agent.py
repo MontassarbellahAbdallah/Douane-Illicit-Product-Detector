@@ -1,3 +1,5 @@
+# Developed by Montassar Bellah Abdallah
+
 from crewai import Agent, Task
 from config import scraping_llm, output_dir
 import os

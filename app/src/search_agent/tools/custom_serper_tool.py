@@ -1,3 +1,5 @@
+# Developed by Montassar Bellah Abdallah
+
 import requests
 import json
 from crewai.tools import BaseTool

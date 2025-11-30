@@ -1,3 +1,5 @@
+# Developed by Montassar Bellah Abdallah
+
 import streamlit as st
 import streamlit.components.v1 as components
 import json
@@ -484,6 +486,8 @@ def render_sidebar(products: List[Dict]):
         st.markdown("""
         Cette application analyse automatiquement les produits en ligne pour détecter
         les contrefaçons potentielles basées sur plusieurs indicateurs.
+
+        **Développé par Montassar Bellah Abdallah**
         """)
 
         return 0, 100

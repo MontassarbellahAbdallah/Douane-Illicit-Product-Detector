@@ -1,3 +1,5 @@
+# Developed by Montassar Bellah Abdallah
+
 import os
 from config import basic_llm, output_dir
 from typing import List

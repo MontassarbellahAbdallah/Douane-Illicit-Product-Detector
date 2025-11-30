@@ -1,3 +1,5 @@
+# Developed by Montassar Bellah Abdallah
+
 from crewai import Crew, Process
 from queries_agent.queries_agent import search_queries_recommendation_agent, search_queries_recommendation_task
 from search_agent.search_agent import search_engine_agent, search_engine_task

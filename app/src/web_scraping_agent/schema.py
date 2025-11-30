@@ -1,3 +1,5 @@
+# Developed by Montassar Bellah Abdallah
+
 from pydantic import BaseModel, Field
 from typing import List, Optional, Union, get_type_hints, get_origin, get_args
 
