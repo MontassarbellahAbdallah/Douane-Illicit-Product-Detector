@@ -29,6 +29,11 @@ basic_llm = LLM(
     temperature=0.7
 )
 
+scraping_llm = LLM(
+    model="gemini/gemini-2.5-flash",
+    temperature=0.0
+)
+
 # Knowledge Source - Context about the Tunisian Customs
 about_customs = """
 The Tunisian Customs monitors online sales platforms to detect illicit products.

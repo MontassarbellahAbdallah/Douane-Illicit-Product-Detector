@@ -8,19 +8,18 @@ customs_crew = Crew(
     agents=[
         search_queries_recommendation_agent,
         search_engine_agent,
-        #scraping_agent,
+        scraping_agent,
     ],
     tasks=[
         search_queries_recommendation_task,
         search_engine_task,
-        #scraping_task,
+        scraping_task,
     ],
     process=Process.sequential,
 )
 
 
 # Execution
-#no_keywords = 10
 crew_results = customs_crew.kickoff(
     inputs={
         #first agent inputs

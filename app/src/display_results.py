@@ -3,6 +3,15 @@ import json
 from typing import List, Dict
 import base64
 
+def decode_unicode_escapes(text: str) -> str:
+    """Decode Unicode escape sequences in a string."""
+    if isinstance(text, str):
+        try:
+            return text.encode('utf-8').decode('unicode_escape')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            return text
+    return text
+
 # Page configuration
 st.set_page_config(
     page_title="Douane - Détecteur de Produits Illicites",
@@ -296,7 +305,6 @@ def render_metrics(products: List[Dict]):
     with col1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-icon">📦</div>
             <div class="metric-value">{total_products}</div>
             <div class="metric-label">Produits Analysés</div>
         </div>
@@ -305,7 +313,6 @@ def render_metrics(products: List[Dict]):
     with col2:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-icon">📊</div>
             <div class="metric-value">{avg_suspicion:.1f}</div>
             <div class="metric-label">Score Moyen</div>
         </div>
@@ -314,7 +321,6 @@ def render_metrics(products: List[Dict]):
     with col3:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-icon">⚠️</div>
             <div class="metric-value">{high_risk}</div>
             <div class="metric-label">Risque Élevé</div>
         </div>
@@ -377,37 +383,31 @@ def render_product_card(product: Dict):
         
         # CTA Button
         if product.get('product_url'):
-            st.markdown(f'<a href="{product["product_url"]}" target="_blank" class="cta-button">🔗 Voir le Produit</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="{product["product_url"]}" target="_blank" class="cta-button">Voir le Produit</a>', unsafe_allow_html=True)
     
     # Suspicion Reasons
     if product.get('suspicion_reasons'):
-        st.markdown("### 🚨 Raisons de Suspicion")
+        st.markdown("### Raisons de Suspicion")
         reasons_html = '<div class="reasons-container">'
         for reason in product['suspicion_reasons']:
             reasons_html += f'<div class="reason-item">• {reason}</div>'
         reasons_html += '</div>'
         st.markdown(reasons_html, unsafe_allow_html=True)
-    
-    # Product Specs
+
+    # Product Specifications Table
     if product.get('product_specs'):
-        with st.expander("📋 Spécifications du Produit", expanded=False):
-            specs_html = '<table class="specs-table">'
-            for spec in product['product_specs']:
-                specs_html += f'''
-                <tr class="spec-row">
-                    <td class="spec-name">🔹 {spec["specification_name"]}</td>
-                    <td class="spec-value">{spec["specification_value"]}</td>
-                </tr>
-                '''
-            specs_html += '</table>'
-            st.markdown(specs_html, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("### Spécifications du Produit")
+        specs_html = '<table class="specs-table">'
+        for spec in product['product_specs']:
+            specs_html += f'<tr class="spec-row"><td class="spec-name"><strong>{spec["specification_name"]}:</strong> {spec["specification_value"]}</td></tr>'
+        specs_html += '</table>'
+        st.markdown(specs_html, unsafe_allow_html=True)
+
 
 # Sidebar
 def render_sidebar(products: List[Dict]):
     with st.sidebar:
-        st.markdown("## 🎛️ Filtres & Options")
+        st.markdown("## Filtres & Options")
         
         # Suspicion Score Filter
         st.markdown("### Score de Suspicion")
@@ -417,39 +417,20 @@ def render_sidebar(products: List[Dict]):
             help="Filtrer par score de suspicion"
         )
         
-        # Sorting
-        st.markdown("### 🔽 Tri")
-        sort_option = st.selectbox(
-            "Trier par",
-            ["Score (Décroissant)", "Score (Croissant)", "Prix (Décroissant)", "Prix (Croissant)", "Réduction (Décroissant)"]
-        )
-        
         st.markdown("---")
         st.markdown("### ℹ️ À Propos")
         st.markdown("""
-        Cette application analyse automatiquement les produits en ligne pour détecter 
+        Cette application analyse automatiquement les produits en ligne pour détecter
         les contrefaçons potentielles basées sur plusieurs indicateurs.
         """)
-        
-        return min_score, max_score, sort_option
 
-# Filter and Sort Products
-def filter_and_sort_products(products: List[Dict], min_score: int, max_score: int, sort_option: str):
+        return min_score, max_score
+
+# Filter Products
+def filter_products(products: List[Dict], min_score: int, max_score: int):
     # Filter
     filtered = [p for p in products if min_score <= p['suspicion_score'] <= max_score]
-    
-    # Sort
-    if sort_option == "Score (Décroissant)":
-        filtered.sort(key=lambda x: x['suspicion_score'], reverse=True)
-    elif sort_option == "Score (Croissant)":
-        filtered.sort(key=lambda x: x['suspicion_score'])
-    elif sort_option == "Prix (Décroissant)":
-        filtered.sort(key=lambda x: x['product_current_price'], reverse=True)
-    elif sort_option == "Prix (Croissant)":
-        filtered.sort(key=lambda x: x['product_current_price'])
-    elif sort_option == "Réduction (Décroissant)":
-        filtered.sort(key=lambda x: x.get('product_discount_percentage', 0), reverse=True)
-    
+
     return filtered
 
 # Main App
@@ -464,22 +445,25 @@ def main():
     # Adjust suspicion_score from 1-10 scale to 0-100 scale
     for product in products:
         product['suspicion_score'] *= 10
+        # Decode Unicode escapes in suspicion_reasons
+        if 'suspicion_reasons' in product and product['suspicion_reasons']:
+            product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
     
     # Sidebar
-    min_score, max_score, sort_option = render_sidebar(products)
-    
+    min_score, max_score = render_sidebar(products)
+
     # Header
     render_header()
 
     # Metrics
     render_metrics(products)
-    
-    
-    # Filter and Sort
-    filtered_products = filter_and_sort_products(products, min_score, max_score, sort_option)
+
+
+    # Filter Products
+    filtered_products = filter_products(products, min_score, max_score)
     
     # Products Section
-    st.markdown("## 📦 Produits Détectés")
+    st.markdown("## Produits Détectés")
     st.markdown(f"*Affichage de {len(filtered_products)} produit(s)*")
     
     if not filtered_products:
@@ -488,9 +472,7 @@ def main():
         for product in filtered_products:
             render_product_card(product)
     
-    # Raw JSON Viewer
-    with st.expander("🔍 Voir les Données Brutes (JSON)", expanded=False):
-        st.json(data)
+    
 
 if __name__ == "__main__":
     main()

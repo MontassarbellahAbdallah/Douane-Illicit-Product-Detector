@@ -7,3 +7,4 @@ google-generativeai
 scrapfly-sdk
 streamlit
 requests
+crawl4ai
