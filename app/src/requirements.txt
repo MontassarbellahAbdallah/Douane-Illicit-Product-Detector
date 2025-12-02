@@ -1,10 +1,7 @@
-crewai[tools,google-genai]
-agentops
-tavily-python
-scrapegraph-py
-dotenv
-google-generativeai
-scrapfly-sdk
-streamlit
-requests
-crawl4ai
+crewai[tools,google-genai]==1.5.0
+agentops==0.4.21
+dotenv==0.9.9
+google-generativeai==0.8.5
+streamlit==1.51.0
+requests==2.32.5
+crawl4ai==0.7.7
