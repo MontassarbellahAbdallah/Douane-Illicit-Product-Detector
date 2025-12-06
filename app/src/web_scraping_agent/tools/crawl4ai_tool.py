@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import traceback
 from crawl4ai import AsyncWebCrawler, LLMExtractionStrategy, LLMConfig, CrawlerRunConfig
 from crewai.tools import BaseTool
 from ..schema import SingleExtractedProduct, generate_schema_string
@@ -54,12 +55,15 @@ class Crawl4AIScrapeWebsiteTool(BaseTool):
         config = CrawlerRunConfig(extraction_strategy=extraction_strategy)
 
         async def scrape():
-            async with AsyncWebCrawler() as crawler:
-                results = await crawler.arun(url, config=config)
-                if results and results[0].success:
-                    return results[0].extracted_content
-                else:
-                    return json.dumps({"error": "Failed to extract structured data"})
+            try:
+                async with AsyncWebCrawler() as crawler:
+                    results = await crawler.arun(url, config=config)
+                    if results and results[0].success:
+                        return results[0].extracted_content
+                    else:
+                        return json.dumps({"error": "Failed to extract structured data"})
+            except Exception as e:
+                return json.dumps({"error": f"Error in scrape function: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"})
 
         try:
             extracted_json = asyncio.run(scrape())
@@ -84,4 +88,5 @@ class Crawl4AIScrapeWebsiteTool(BaseTool):
             product = SingleExtractedProduct(**data)
             return json.dumps(data)
         except Exception as e:
-            return json.dumps({"error": f"Error scraping {url}: {str(e)}"})
+            error_msg = f"Error scraping {url}: {str(e)}\n\nFull traceback:\n{traceback.format_exc()}"
+            return json.dumps({"error": error_msg})
