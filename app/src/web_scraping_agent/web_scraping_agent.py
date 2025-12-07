@@ -26,7 +26,7 @@ scraping_task = Task(
         "Use the web scraping tool to extract content from each URL in the search results.",
         "From the scraped content, identify and extract only the product-related information, ignoring navigation menus, footers, advertisements, customer reviews, and other non-product elements.",
         "Then, convert only that extracted product information into a JSON object with key 'products' and value as an array of product objects.",
-        "Each product object should include as much information as available: page_url (original URL), product_title, product_image_url, product_url, product_current_price (numeric), suspicion_score (1-10), suspicion_reasons (array of strings).",
+        "Each product object should include as much information as available: page_url (original URL), product_title, product_image_url, product_current_price (numeric), suspicion_score (1-10), suspicion_reasons (array of strings).",
         "All fields are optional - extract whatever information is present on the page.",
         "Focus on identifying red flags such as unusually low prices, missing brand information, or suspicious seller profiles.",
         #"Collect details from the top {top_recommendations_no} most suspicious products from the search results.",

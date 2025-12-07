@@ -8,7 +8,6 @@ class SingleExtractedProduct(BaseModel):
     page_url: Optional[str] = Field(title="The original url of the product page", default=None)
     product_title: Optional[str] = Field(title="The title of the product", default=None)
     product_image_url: Optional[str] = Field(title="The url of the product image", default=None)
-    product_url: Optional[str] = Field(title="The url of the product", default=None)
     product_current_price: Optional[float] = Field(title="The current price of the product", default=None)
     product_original_price: Optional[float] = Field(title="The original price of the product before discount. Set to None if no discount", default=None)
     product_discount_percentage: Optional[float] = Field(title="The discount percentage of the product. Set to None if no discount", default=None)
