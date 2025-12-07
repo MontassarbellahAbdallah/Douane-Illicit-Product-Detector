@@ -397,15 +397,6 @@ def render_product_card(product: Dict):
         reasons_html += '</div>'
         st.markdown(reasons_html, unsafe_allow_html=True)
 
-    # Product Specifications Table
-    if product.get('product_specs'):
-        st.markdown("### Spécifications du Produit")
-        specs_html = '<table class="specs-table">'
-        for spec in product['product_specs']:
-            specs_html += f'<tr class="spec-row"><td class="spec-name"><strong>{spec["specification_name"]}:</strong> {spec["specification_value"]}</td></tr>'
-        specs_html += '</table>'
-        st.markdown(specs_html, unsafe_allow_html=True)
-
 # Component: Search Results Table
 def render_search_results_table(results: List[Dict]):
     if not results:

@@ -4,11 +4,6 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Union, get_type_hints, get_origin, get_args
 
 
-class ProductSpec(BaseModel):
-    specification_name: str
-    specification_value: str
-
-
 class SingleExtractedProduct(BaseModel):
     page_url: Optional[str] = Field(title="The original url of the product page", default=None)
     product_title: Optional[str] = Field(title="The title of the product", default=None)
@@ -17,8 +12,6 @@ class SingleExtractedProduct(BaseModel):
     product_current_price: Optional[float] = Field(title="The current price of the product", default=None)
     product_original_price: Optional[float] = Field(title="The original price of the product before discount. Set to None if no discount", default=None)
     product_discount_percentage: Optional[float] = Field(title="The discount percentage of the product. Set to None if no discount", default=None)
-
-    product_specs: List[ProductSpec] = Field(title="The key specifications of the product for authenticity verification", default_factory=list)
 
     suspicion_score: Optional[int] = Field(title="Suspicion level of the product being illicit (1-10, where 10 is highly suspicious)", default=None)
     suspicion_reasons: List[str] = Field(title="Reasons why this product is flagged as potentially illicit or counterfeit", default_factory=list)
