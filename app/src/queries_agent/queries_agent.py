@@ -49,3 +49,4 @@ search_queries_recommendation_task = Task(
     agent=search_queries_recommendation_agent
 )
 #TODO: when the user provide a product_category and language in french it should be translated to english before being used in the prompt.
+#TODO: exculde some domains from the search

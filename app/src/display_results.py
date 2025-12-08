@@ -356,15 +356,18 @@ def render_suspicion_score(score: int):
 # Component: Product Card
 def render_product_card(product: Dict):
     st.markdown('<div class="product-card">', unsafe_allow_html=True)
-    # Image and Title
-    col1, col2 = st.columns([1, 2])
 
+    # Create 3-column layout: Image | Product Details | Attribution Info
+    col1, col2, col3 = st.columns([1, 2, 2])
+
+    # Column 1: Product Image
     with col1:
         if product.get('product_image_url'):
             st.markdown(f'<img src="{product["product_image_url"]}" class="product-image" />', unsafe_allow_html=True)
         else:
             st.markdown('<div class="product-image" style="background: #334155; display: flex; align-items: center; justify-content: center; color: #64748b;">Pas d\'image</div>', unsafe_allow_html=True)
 
+    # Column 2: Product Details
     with col2:
         st.markdown(f'<div class="product-title">{product["product_title"]}</div>', unsafe_allow_html=True)
 
@@ -388,7 +391,35 @@ def render_product_card(product: Dict):
         if product.get('page_url'):
             st.markdown(f'<a href="{product["page_url"]}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 0.8rem 2rem; border-radius: 12px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); border: none; cursor: pointer; font-size: 1rem; font-family: \'Inter\', sans-serif;">Voir le Produit</a>', unsafe_allow_html=True)
 
-    # Suspicion Reasons
+    # Column 3: Attribution Information
+    with col3:
+        st.markdown("### Informations sur le Vendeur")
+
+        attribution_fields = [
+            ('business_name', 'Nom de l\'Entreprise'),
+            ('business_contact_email', 'Email de Contact'),
+            ('business_contact_phone', 'Téléphone de Contact'),
+            ('business_address', 'Adresse'),
+            ('business_registration_info', 'Informations d\'Enregistrement'),
+            ('business_website', 'Site Web Officiel'),
+            ('founder_creator_info', 'Informations sur les Fondateurs/Créateurs')
+        ]
+
+        attribution_info = []
+        for field, label in attribution_fields:
+            if product.get(field):
+                attribution_info.append(f"<strong>{label}:</strong> {product[field]}")
+
+        if attribution_info:
+            attribution_html = '<div class="reasons-container" style="margin-top: 1rem;">'
+            for info in attribution_info:
+                attribution_html += f'<div class="reason-item">{info}</div>'
+            attribution_html += '</div>'
+            st.markdown(attribution_html, unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="color: #64748b; font-style: italic; margin-top: 1rem;">Aucune information d\'attribution trouvée</div>', unsafe_allow_html=True)
+
+    # Suspicion Reasons (full width below the 3 columns)
     if product.get('suspicion_reasons'):
         st.markdown("### Raisons de Suspicion")
         reasons_html = '<div class="reasons-container">'
