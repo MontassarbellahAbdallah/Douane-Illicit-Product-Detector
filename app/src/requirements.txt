@@ -5,3 +5,4 @@ google-generativeai==0.8.5
 streamlit==1.51.0
 requests==2.32.5
 crawl4ai==0.7.7
+python-whois==0.9.6

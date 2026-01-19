@@ -396,13 +396,23 @@ def render_product_card(product: Dict):
         st.markdown("### Informations sur le Vendeur")
 
         attribution_fields = [
-            ('business_website', 'Site Web Officiel')
+            ('business_website', 'Site Web Officiel'),
+            ('whois_info', 'Informations WHOIS')
         ]
 
         attribution_info = []
         for field, label in attribution_fields:
-            if product.get(field):
-                attribution_info.append(f"<strong>{label}:</strong> {product[field]}")
+            value = product.get(field)
+            if value:
+                if isinstance(value, dict):
+                    filtered_items = [(k, v) for k, v in value.items() if v is not None]
+                    if filtered_items:
+                        info = f"<strong>{label}:</strong><br>"
+                        for k, v in filtered_items:
+                            info += f"&nbsp;&nbsp;{k}: {v}<br>"
+                        attribution_info.append(info)
+                else:
+                    attribution_info.append(f"<strong>{label}:</strong> {value}")
 
         if attribution_info:
             attribution_html = '<div class="reasons-container" style="margin-top: 1rem;">'

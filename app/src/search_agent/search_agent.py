@@ -34,6 +34,7 @@ search_engine_task = Task(
         "Only consider URLs that end with '.tn' to ensure searches are limited to Tunisian domains. Ignore any results from other domains.",
         "Ignore any products that are 'En rupture de stock' (out of stock).",
         "Ignore any suspicious links or links that are not e-commerce product pages.",
+        "Ignore price comparator websites such as www.mega.tn or any other websites that compare prices across different retailers.",
         "Ignore any search results with confidence score less than ({score_th}).",
         "Limit the total number of collected search results to at most {max_search_results}.",
         "Focus on finding products that may be counterfeit, undeclared, or illegally imported.",

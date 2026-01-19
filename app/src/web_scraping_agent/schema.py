@@ -12,6 +12,7 @@ class SingleExtractedProduct(BaseModel):
     product_original_price: Optional[float] = Field(title="The original price of the product before discount. Set to None if no discount", default=None)
     product_discount_percentage: Optional[float] = Field(title="The discount percentage of the product. Set to None if no discount", default=None)
     business_website: Optional[str] = Field(title="Official website of the business (different from product page)", default=None)
+    whois_info: Optional[dict] = Field(title="WHOIS information for the business website domain", default=None)
 
     suspicion_score: Optional[int] = Field(title="Suspicion level of the product being illicit (1-10, where 10 is highly suspicious)", default=None)
     suspicion_reasons: List[str] = Field(title="Reasons why this product is flagged as potentially illicit or counterfeit", default_factory=list)
