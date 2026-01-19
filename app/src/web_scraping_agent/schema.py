@@ -11,15 +11,7 @@ class SingleExtractedProduct(BaseModel):
     product_current_price: Optional[float] = Field(title="The current price of the product", default=None)
     product_original_price: Optional[float] = Field(title="The original price of the product before discount. Set to None if no discount", default=None)
     product_discount_percentage: Optional[float] = Field(title="The discount percentage of the product. Set to None if no discount", default=None)
-
-    # Attribution Layer - Business/Company Information
-    business_name: Optional[str] = Field(title="Name of the business or company selling the product", default=None)
-    business_contact_email: Optional[str] = Field(title="Contact email address of the business", default=None)
-    business_contact_phone: Optional[str] = Field(title="Contact phone number of the business", default=None)
-    business_address: Optional[str] = Field(title="Physical or business address of the company", default=None)
-    business_registration_info: Optional[str] = Field(title="Business registration number, tax ID, or legal entity information", default=None)
     business_website: Optional[str] = Field(title="Official website of the business (different from product page)", default=None)
-    founder_creator_info: Optional[str] = Field(title="Information about founders, creators, or owners of the business", default=None)
 
     suspicion_score: Optional[int] = Field(title="Suspicion level of the product being illicit (1-10, where 10 is highly suspicious)", default=None)
     suspicion_reasons: List[str] = Field(title="Reasons why this product is flagged as potentially illicit or counterfeit", default_factory=list)

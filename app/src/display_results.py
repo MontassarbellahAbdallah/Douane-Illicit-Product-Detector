@@ -396,13 +396,7 @@ def render_product_card(product: Dict):
         st.markdown("### Informations sur le Vendeur")
 
         attribution_fields = [
-            ('business_name', 'Nom de l\'Entreprise'),
-            ('business_contact_email', 'Email de Contact'),
-            ('business_contact_phone', 'Téléphone de Contact'),
-            ('business_address', 'Adresse'),
-            ('business_registration_info', 'Informations d\'Enregistrement'),
-            ('business_website', 'Site Web Officiel'),
-            ('founder_creator_info', 'Informations sur les Fondateurs/Créateurs')
+            ('business_website', 'Site Web Officiel')
         ]
 
         attribution_info = []
