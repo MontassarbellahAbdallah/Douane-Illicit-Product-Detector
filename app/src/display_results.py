@@ -4,7 +4,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 import json
 from typing import List, Dict
-import base64
 
 def decode_unicode_escapes(text: str) -> str:
     """Decode Unicode escape sequences in a string."""
@@ -358,27 +357,28 @@ def render_product_card(product: Dict):
     st.markdown('<div class="product-card">', unsafe_allow_html=True)
 
     # Create 3-column layout: Image | Product Details | Attribution Info
-    col1, col2, col3 = st.columns([1, 2, 2])
+    col1, col2, col3 = st.columns([2, 2, 2])
 
-    # Column 1: Product Image
+    # Column 1: Product Image and Suspicion Reasons
     with col1:
         if product.get('product_image_url'):
             st.markdown(f'<img src="{product["product_image_url"]}" class="product-image" />', unsafe_allow_html=True)
         else:
             st.markdown('<div class="product-image" style="background: #334155; display: flex; align-items: center; justify-content: center; color: #64748b;">Pas d\'image</div>', unsafe_allow_html=True)
 
-    # Column 2: Product Details
-    with col2:
         st.markdown(f'<div class="product-title">{product["product_title"]}</div>', unsafe_allow_html=True)
 
         # Price Section
         price_html = '<div class="price-container">'
-        price_html += f'<span class="current-price">{product["product_current_price"]:.2f} DT</span>'
+        if product.get('product_current_price') is not None:
+            price_html += f'<span class="current-price">{product["product_current_price"]:.2f} DT</span>'
+        else:
+            price_html += '<span class="current-price">Prix non disponible</span>'
 
-        if product.get('product_original_price') and product['product_original_price'] > product['product_current_price']:
+        if product.get('product_original_price') and product['product_original_price'] is not None and product.get('product_current_price') is not None and product['product_original_price'] > product['product_current_price']:
             price_html += f'<span class="original-price">{product["product_original_price"]:.2f} DT</span>'
 
-        if product.get('product_discount_percentage') and product['product_discount_percentage'] > 0:
+        if product.get('product_discount_percentage') and product['product_discount_percentage'] is not None and product['product_discount_percentage'] > 0:
             price_html += f'<span class="discount-badge">-{product["product_discount_percentage"]:.0f}%</span>'
 
         price_html += '</div>'
@@ -391,8 +391,9 @@ def render_product_card(product: Dict):
         if product.get('page_url'):
             st.markdown(f'<a href="{product["page_url"]}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 0.8rem 2rem; border-radius: 12px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); border: none; cursor: pointer; font-size: 1rem; font-family: \'Inter\', sans-serif;">Voir le Produit</a>', unsafe_allow_html=True)
 
-    # Column 3: Attribution Information
-    with col3:
+
+    # Column 2: Product Details
+    with col2:
         st.markdown("### Informations sur le Vendeur")
 
         attribution_fields = [
@@ -423,14 +424,20 @@ def render_product_card(product: Dict):
         else:
             st.markdown('<div style="color: #64748b; font-style: italic; margin-top: 1rem;">Aucune information d\'attribution trouvée</div>', unsafe_allow_html=True)
 
-    # Suspicion Reasons (full width below the 3 columns)
-    if product.get('suspicion_reasons'):
-        st.markdown("### Raisons de Suspicion")
-        reasons_html = '<div class="reasons-container">'
-        for reason in product['suspicion_reasons']:
-            reasons_html += f'<div class="reason-item">• {reason}</div>'
-        reasons_html += '</div>'
-        st.markdown(reasons_html, unsafe_allow_html=True)
+
+        
+    # Column 3: Attribution Information
+    with col3:
+        # Suspicion Reasons moved here
+        if product.get('suspicion_reasons'):
+            st.markdown("### Raisons de Suspicion")
+            reasons_html = '<div class="reasons-container">'
+            for reason in product['suspicion_reasons']:
+                reasons_html += f'<div class="reason-item">• {reason}</div>'
+            reasons_html += '</div>'
+            st.markdown(reasons_html, unsafe_allow_html=True)
+        
+
 
 # Component: Search Results Table
 def render_search_results_table(results: List[Dict]):
@@ -579,8 +586,10 @@ def main():
     if not filtered_products:
         st.warning("Aucun produit ne correspond aux filtres sélectionnés.")
     else:
-        for product in filtered_products:
+        for i, product in enumerate(filtered_products):
             render_product_card(product)
+            if i < len(filtered_products) - 1:
+                st.divider()
 
     # Other Potential Products Section
     if unscraped_results:
