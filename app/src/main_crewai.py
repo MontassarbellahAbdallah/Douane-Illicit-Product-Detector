@@ -54,7 +54,8 @@ for attempt in range(1, MAX_ATTEMPTS + 1):
     # Inputs for first two agents (with adjusted parameters)
     inputs_1_2 = {
         "product_category": "produits électroniques",
-        "platforms_list": [],
+        #"platforms_list": [],
+        "excluded_platforms_list": ["www.facebook.com", "www.instagram.com", "mail.9annas.tn"],
         "no_keywords": 3,
         "language": "french",
         "score_th": current_score_th,
@@ -64,8 +65,8 @@ for attempt in range(1, MAX_ATTEMPTS + 1):
     results1 = crew1.kickoff(inputs=inputs_1_2)
 
     # Wait 60 seconds to respect Gemini API rate limit (5 RPM)
-    print("Waiting 60 seconds to respect API rate limits...")
-    time.sleep(60)
+    #print("Waiting 60 seconds to respect API rate limits...")
+    #time.sleep(60)
     
 
     # Load search results

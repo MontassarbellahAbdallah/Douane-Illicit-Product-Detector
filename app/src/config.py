@@ -28,7 +28,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 basic_llm = LLM(
     model="gemini/gemini-2.5-flash",
-    temperature=0.7
+    temperature=0.9
 )
 
 scraping_llm = LLM(
