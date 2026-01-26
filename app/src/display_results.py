@@ -4,6 +4,13 @@ import streamlit as st
 import streamlit.components.v1 as components
 import json
 from typing import List, Dict
+import os
+import sys
+
+# Add the parent directory of main_crewai.py to the path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+from main_crewai import run_analysis # Import the refactored function
+
 
 def decode_unicode_escapes(text: str) -> str:
     """Decode Unicode escape sequences in a string."""
@@ -24,7 +31,8 @@ st.set_page_config(
 
 # Custom CSS for premium styling
 def load_css():
-    with open('../styles/style.css', 'r', encoding='utf-8') as f:
+    css_file_path = os.path.join(os.path.dirname(__file__), '..', 'styles', 'style.css')
+    with open(css_file_path, 'r', encoding='utf-8') as f:
         css_content = f.read()
     st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
 
@@ -59,7 +67,7 @@ def render_metrics(products: List[Dict]):
             <div class="metric-value">{avg_suspicion:.1f}</div>
             <div class="metric-label">Score Moyen</div>
         </div>
-        """, unsafe_allow_html=True)
+        """ , unsafe_allow_html=True)
     
     with col3:
         st.markdown(f"""
@@ -230,68 +238,118 @@ def filter_products(products: List[Dict], min_score: int, max_score: int):
 def main():
     load_css()
 
-    # Load scraped products data
-    with open('ai-agent-output/step_3_scraped_products.json', 'r', encoding='utf-8') as f:
-        scraped_data = json.load(f)
-
-    scraped_products = scraped_data.get('products', [])
-    # Adjust suspicion_score from 1-10 scale to 0-100 scale
-    for product in scraped_products:
-        product['suspicion_score'] *= 10
-        # Decode Unicode escapes in suspicion_reasons
-        if 'suspicion_reasons' in product and product['suspicion_reasons']:
-            product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
-
-    # Load search results data
-    with open('ai-agent-output/step_2_search_results.json', 'r', encoding='utf-8') as f:
-        search_data = json.load(f)
-
-    search_results = search_data.get('results', [])
-
-    # Get URLs of scraped products
-    scraped_urls = {product['page_url'] for product in scraped_products}
-
-    # Filter search results to exclude scraped ones
-    unscraped_results = [result for result in search_results if result['url'] not in scraped_urls]
-
-    # Convert search scores to display scale (0-100)
-    for result in unscraped_results:
-        result['display_score'] = round(result['score'] * 100)
-
-    products = scraped_products
-    
-    # Sidebar
-    min_score, max_score = render_sidebar(products)
-
-    # Header
     render_header()
 
-    # Metrics
-    render_metrics(products)
+    st.sidebar.title("Paramètres d'Analyse")
+    product_category_input = st.sidebar.text_input(
+        "Catégorie de produit",
+        value="produits électroniques",
+        help="Entrez la catégorie de produits à analyser."
+    )
+
+    excluded_platforms_input = st.sidebar.text_area(
+        "Plateformes à exclure (une par ligne)",
+        value="",
+        help="Entrez les plateformes (domaines) à exclure, une par ligne."
+    )
+    excluded_platforms_list = [p.strip() for p in excluded_platforms_input.split('\n') if p.strip()]
+
+    if st.sidebar.button("Démarrer l'Analyse 🚀") or st.session_state.get('analysis_started', False):
+        st.session_state['analysis_started'] = True
+        st.session_state['product_category'] = product_category_input
+        st.session_state['excluded_platforms_list'] = excluded_platforms_list
+
+    if st.session_state.get('analysis_started'):
+        product_category_to_analyze = st.session_state['product_category']
+        excluded_platforms_to_analyze = st.session_state['excluded_platforms_list']
+        
+        st.info(f"Lancement de l'analyse pour '{product_category_to_analyze}' (exclusion: {', '.join(excluded_platforms_to_analyze) if excluded_platforms_to_analyze else 'Aucune'}) ")
+        
+        with st.spinner("Analyse en cours... Cela peut prendre quelques minutes."):
+            analysis_success = run_analysis(
+                product_category=product_category_to_analyze,
+                excluded_platforms_list=excluded_platforms_to_analyze
+            )
+        
+        if analysis_success:
+            st.success("Analyse terminée avec succès!")
+            st.session_state['results_available'] = True
+        else:
+            st.error("L'analyse n'a pas pu détecter de produits suspects après plusieurs tentatives.")
+            st.session_state['results_available'] = False
+        
+        # Clear analysis_started state to allow rerunning
+        st.session_state['analysis_started'] = False
+        st.rerun() # Rerun to display results without spinner
+
+    if st.session_state.get('results_available'):
+        # Load scraped products data
+        scraped_products_path = os.path.join(os.path.dirname(__file__), 'ai-agent-output', 'step_3_scraped_products.json')
+        search_results_path = os.path.join(os.path.dirname(__file__), 'ai-agent-output', 'step_2_search_results.json')
+
+        if not os.path.exists(scraped_products_path) or not os.path.exists(search_results_path):
+            st.warning("Les fichiers de résultats n'ont pas été trouvés ou l'analyse a échoué.")
+            st.session_state['results_available'] = False
+            return
+
+        with open(scraped_products_path, 'r', encoding='utf-8') as f:
+            scraped_data = json.load(f)
+
+        scraped_products = scraped_data.get('products', [])
+        # Adjust suspicion_score from 1-10 scale to 0-100 scale
+        for product in scraped_products:
+            product['suspicion_score'] *= 10
+            # Decode Unicode escapes in suspicion_reasons
+            if 'suspicion_reasons' in product and product['suspicion_reasons']:
+                product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
+
+        # Load search results data
+        with open(search_results_path, 'r', encoding='utf-8') as f:
+            search_data = json.load(f)
+
+        search_results = search_data.get('results', [])
+
+        # Get URLs of scraped products
+        scraped_urls = {product['page_url'] for product in scraped_products}
+
+        # Filter search results to exclude scraped ones
+        unscraped_results = [result for result in search_results if result['url'] not in scraped_urls]
+
+        # Convert search scores to display scale (0-100)
+        for result in unscraped_results:
+            result['display_score'] = round(result['score'] * 100)
+
+        products = scraped_products
+        
+        # Sidebar
+        min_score, max_score = render_sidebar(products)
+
+        # Metrics
+        render_metrics(products)
 
 
-    # Filter Products
-    filtered_products = filter_products(products, min_score, max_score)
-    
-    # Products Section
-    st.markdown("## Produits Détectés")
-    st.markdown(f"*Affichage de {len(filtered_products)} produit(s)*")
+        # Filter Products
+        filtered_products = filter_products(products, min_score, max_score)
+        
+        # Products Section
+        st.markdown("## Produits Détectés")
+        st.markdown(f"*Affichage de {len(filtered_products)} produit(s)*")
 
-    if not filtered_products:
-        st.warning("Aucun produit ne correspond aux filtres sélectionnés.")
-    else:
-        for i, product in enumerate(filtered_products):
-            render_product_card(product)
-            if i < len(filtered_products) - 1:
-                st.divider()
+        if not filtered_products:
+            st.warning("Aucun produit ne correspond aux filtres sélectionnés.")
+        else:
+            for i, product in enumerate(filtered_products):
+                render_product_card(product)
+                if i < len(filtered_products) - 1:
+                    st.divider()
 
-    # Other Potential Products Section
-    if unscraped_results:
-        st.markdown("---")
-        st.markdown("## Autres Possibilités de Produits")
-        #st.markdown(f"*Affichage de {len(unscraped_results)} résultat(s) de recherche supplémentaire(s) non analysés en profondeur*")
+        # Other Potential Products Section
+        if unscraped_results:
+            st.markdown("---")
+            st.markdown("## Autres Possibilités de Produits")
+            #st.markdown(f"*Affichage de {len(unscraped_results)} résultat(s) de recherche supplémentaire(s) non analysés en profondeur*")
 
-        render_search_results_table(unscraped_results)
+            render_search_results_table(unscraped_results)
 
 
 
