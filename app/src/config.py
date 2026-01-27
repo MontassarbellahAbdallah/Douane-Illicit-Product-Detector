@@ -26,9 +26,10 @@ logging.getLogger('agentops').setLevel(logging.WARNING)
 output_dir = "./ai-agent-output"
 os.makedirs(output_dir, exist_ok=True)
 
+
 basic_llm = LLM(
     model="gemini/gemini-2.5-flash",
-    temperature=0.9
+    temperature=0.7
 )
 
 scraping_llm = LLM(

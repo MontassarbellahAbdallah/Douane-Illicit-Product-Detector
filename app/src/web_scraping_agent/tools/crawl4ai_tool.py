@@ -9,7 +9,11 @@ from crawl4ai import AsyncWebCrawler, LLMExtractionStrategy, LLMConfig, CrawlerR
 from crewai.tools import BaseTool
 from ..schema import SingleExtractedProduct, generate_schema_string
 from config import GOOGLE_API_KEY, output_dir
+import sys
 
+# Add at the top of the file
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 def get_search_score_for_url(url: str) -> int:
     """Get the search score for a URL from step_2_search_results.json and convert to suspicion_score (1-10)."""

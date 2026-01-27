@@ -39,10 +39,11 @@ search_queries_recommendation_task = Task(
         "The searches must target the Tunisian market or sites accessible from Tunisia.",
         "Generate a maximum of {no_keywords} search queries.",
         "The search keywords must be in {language} language.",
-        #"Each query must include at least one term indicating an illicit product: 'replica', 'copy', 'counterfeit', 'generic', 'non-original', 'illegally imported', 'undeclared', 'black market', etc.",
+        "Each query must include at least one term indicating an illicit product: 'replica', 'copy', 'counterfeit', 'generic', 'non-original', 'illegally imported', 'undeclared', 'black market', etc.",
         "Avoid generic terms like 'low price', 'cheap', 'amazing price' alone as they may return legitimate products.",
-        #"The queries must be specific: include particular brands, types, or models.",
+        "The queries must be specific: include particular brands, types, or models.",
         "Target real product pages, not blogs or listing pages."
+        "**IMPORTANT**Ensure the output is valid JSON",
     ]),
     expected_output="A JSON object containing a list of suggested search queries for detecting illicit products.",
     output_json=SuggestedSearchQueries,

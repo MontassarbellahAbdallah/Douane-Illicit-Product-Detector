@@ -216,16 +216,8 @@ def render_search_results_table(results: List[Dict]):
 
 
 # Sidebar
-def render_sidebar(products: List[Dict]):
+def render_sidebar():
     with st.sidebar:
-        st.markdown("### ℹ️ À Propos")
-        st.markdown("""
-        Cette application analyse automatiquement les produits en ligne pour détecter
-        les contrefaçons potentielles basées sur plusieurs indicateurs.
-
-        **Développé par Montassar Bellah Abdallah**
-        """)
-
         return 0, 100
 
 # Filter Products
@@ -244,10 +236,12 @@ def main():
     load_css()
 
     render_header()
-
+    #render_sidebar()
     # WHOIS Search Feature in Sidebar
     with st.sidebar:
         st.markdown("### 🌐 Recherche WHOIS")
+        st.markdown("""
+        Whois domain lookup vous permet de tracer la propriété et la titularité d’un nom de domaine.""")
         domain_input = st.text_input(
             "Entrez un nom de domaine",
             value="example.com",
@@ -269,7 +263,9 @@ def main():
 
         st.divider() # Add a divider for visual separation
 
-    st.sidebar.title("Paramètres d'Analyse")
+    st.sidebar.title("🔎 Paramètres d'Analyse")
+    st.sidebar.markdown("Détecter automatiquement les produits potentiellement illicites sur les plateformes de vente en ligne.")
+
     product_category_input = st.sidebar.text_input(
         "Catégorie de produit",
         value="produits électroniques",
@@ -361,7 +357,7 @@ def main():
         products = scraped_products
         
         # Sidebar
-        min_score, max_score = render_sidebar(products)
+        min_score, max_score = render_sidebar()
 
         # Metrics
         render_metrics(products)
