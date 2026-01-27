@@ -8,6 +8,12 @@ from datetime import datetime
 import os
 import sys
 
+
+# Add the parent directory of main_crewai.py to the path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+from main_crewai import run_analysis # Import the refactored function
+from pdf_generation import generate_whois_pdf # Import PDF generation module
+
 # Add the parent directory of main_crewai.py to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 from main_crewai import run_analysis # Import the refactored function
@@ -287,6 +293,20 @@ def main():
             st.error(f"Erreur lors de la recherche WHOIS pour {result['domain']}: {result['error']}")
         else:
             st.json(result['info'])
+            
+            # PDF Download Button
+            try:
+                pdf_bytes = generate_whois_pdf(result['domain'], result['info'])
+                st.download_button(
+                    label="📄 Télécharger en PDF",
+                    data=pdf_bytes,
+                    file_name=f"whois_{result['domain']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    mime="application/pdf",
+                    help="Télécharger les informations WHOIS au format PDF"
+                )
+            except Exception as e:
+                st.error(f"Erreur lors de la génération du PDF: {str(e)}")
+        
         st.divider()
 
     if st.sidebar.button("Démarrer l'Analyse 🚀") or st.session_state.get('analysis_started', False):
