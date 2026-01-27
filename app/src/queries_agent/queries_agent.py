@@ -1,10 +1,14 @@
 # Developed by Montassar Bellah Abdallah
 
 import os
+import logging
 from config import basic_llm, output_dir
 from typing import List
 from pydantic import BaseModel, Field
 from crewai import Agent, Task
+
+# Setup logging for error tracking (internal only, not shown to user)
+logger = logging.getLogger(__name__)
 
 ## Setup Agent
 # Output Model
@@ -27,6 +31,7 @@ search_queries_recommendation_agent = Agent(
     backstory="The agent is designed to help Tunisian Customs detect illicit products by providing a list of targeted search queries based on product categories commonly involved in fraud and smuggling.",
     llm=basic_llm,
     verbose=True,
+    allow_delegation=False,  # Prevent delegation to avoid additional error points
 )
 
 # Task Definition
@@ -48,7 +53,9 @@ search_queries_recommendation_task = Task(
     expected_output="A JSON object containing a list of suggested search queries for detecting illicit products.",
     output_json=SuggestedSearchQueries,
     output_file=os.path.join(output_dir, "step_1_suggested_search_queries.json"),
-    agent=search_queries_recommendation_agent
+    agent=search_queries_recommendation_agent,
+    async_execution=False,  # Run synchronously to better handle errors
 )
 #TODO: when the user provide a product_category and language in french it should be translated to english before being used in the prompt.
 
+ 

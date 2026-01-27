@@ -274,7 +274,7 @@ def main():
 
     excluded_platforms_input = st.sidebar.text_area(
         "Plateformes à exclure (une par ligne)",
-        value="",
+        value="mail.9annas.tn",
         help="Entrez les plateformes (domaines) à exclure, une par ligne."
     )
     excluded_platforms_list = [p.strip() for p in excluded_platforms_input.split('\n') if p.strip()]
@@ -318,31 +318,86 @@ def main():
         st.rerun() # Rerun to display results without spinner
 
     if st.session_state.get('results_available'):
-        # Load scraped products data
+        # Load scraped products data with error handling
         scraped_products_path = os.path.join(os.path.dirname(__file__), 'ai-agent-output', 'step_3_scraped_products.json')
         search_results_path = os.path.join(os.path.dirname(__file__), 'ai-agent-output', 'step_2_search_results.json')
 
-        if not os.path.exists(scraped_products_path) or not os.path.exists(search_results_path):
-            st.warning("Les fichiers de résultats n'ont pas été trouvés ou l'analyse a échoué.")
+        try:
+            # Try to load scraped products data
+            if os.path.exists(scraped_products_path):
+                with open(scraped_products_path, 'r', encoding='utf-8') as f:
+                    scraped_data = json.load(f)
+                scraped_products = scraped_data.get('products', [])
+                # Adjust suspicion_score from 1-10 scale to 0-100 scale
+                for product in scraped_products:
+                    product['suspicion_score'] *= 10
+                    # Decode Unicode escapes in suspicion_reasons
+                    if 'suspicion_reasons' in product and product['suspicion_reasons']:
+                        product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
+            else:
+                # Try to load from fallback
+                fallback_path = os.path.join(os.path.dirname(__file__), '..', 'fallback', 'step_3_scraped_products.json')
+                if os.path.exists(fallback_path):
+                    with open(fallback_path, 'r', encoding='utf-8') as f:
+                        scraped_data = json.load(f)
+                    scraped_products = scraped_data.get('products', [])
+                    # Adjust suspicion_score from 1-10 scale to 0-100 scale
+                    for product in scraped_products:
+                        product['suspicion_score'] *= 10
+                        # Decode Unicode escapes in suspicion_reasons
+                        if 'suspicion_reasons' in product and product['suspicion_reasons']:
+                            product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
+                    st.info("Données de secours utilisées pour les produits scrapés.")
+                else:
+                    st.warning("Les fichiers de résultats n'ont pas été trouvés.")
+                    st.session_state['results_available'] = False
+                    return
+
+            # Try to load search results data
+            if os.path.exists(search_results_path):
+                with open(search_results_path, 'r', encoding='utf-8') as f:
+                    search_data = json.load(f)
+            else:
+                # Try to load from fallback
+                fallback_search_path = os.path.join(os.path.dirname(__file__), '..', 'fallback', 'step_2_search_results.json')
+                if os.path.exists(fallback_search_path):
+                    with open(fallback_search_path, 'r', encoding='utf-8') as f:
+                        search_data = json.load(f)
+                    st.info("Données de secours utilisées pour les résultats de recherche.")
+                else:
+                    search_data = {"results": []}
+
+            search_results = search_data.get('results', [])
+        except json.JSONDecodeError as e:
+            st.error("Erreur de lecture des fichiers de résultats. Données de secours utilisées.")
+            # Load fallback data
+            fallback_path = os.path.join(os.path.dirname(__file__), '..', 'fallback', 'step_3_scraped_products.json')
+            fallback_search_path = os.path.join(os.path.dirname(__file__), '..', 'fallback', 'step_2_search_results.json')
+            
+            try:
+                if os.path.exists(fallback_path):
+                    with open(fallback_path, 'r', encoding='utf-8') as f:
+                        scraped_data = json.load(f)
+                    scraped_products = scraped_data.get('products', [])
+                    for product in scraped_products:
+                        product['suspicion_score'] *= 10
+                        if 'suspicion_reasons' in product and product['suspicion_reasons']:
+                            product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
+                
+                if os.path.exists(fallback_search_path):
+                    with open(fallback_search_path, 'r', encoding='utf-8') as f:
+                        search_data = json.load(f)
+                    search_results = search_data.get('results', [])
+                else:
+                    search_results = []
+            except Exception:
+                st.error("Impossible de charger les données de secours.")
+                st.session_state['results_available'] = False
+                return
+        except Exception as e:
+            st.error(f"Erreur inattendue lors du chargement des résultats: {str(e)}")
             st.session_state['results_available'] = False
             return
-
-        with open(scraped_products_path, 'r', encoding='utf-8') as f:
-            scraped_data = json.load(f)
-
-        scraped_products = scraped_data.get('products', [])
-        # Adjust suspicion_score from 1-10 scale to 0-100 scale
-        for product in scraped_products:
-            product['suspicion_score'] *= 10
-            # Decode Unicode escapes in suspicion_reasons
-            if 'suspicion_reasons' in product and product['suspicion_reasons']:
-                product['suspicion_reasons'] = [decode_unicode_escapes(reason) for reason in product['suspicion_reasons']]
-
-        # Load search results data
-        with open(search_results_path, 'r', encoding='utf-8') as f:
-            search_data = json.load(f)
-
-        search_results = search_data.get('results', [])
 
         # Get URLs of scraped products
         scraped_urls = {product['page_url'] for product in scraped_products}

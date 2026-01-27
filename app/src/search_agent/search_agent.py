@@ -1,12 +1,16 @@
 
 # Developed by Montassar Bellah Abdallah
 
+import logging
 from pydantic import BaseModel, Field
 from typing import List
 import os
 from crewai import Agent, Task
 from config import basic_llm, output_dir
 from .tools.custom_serper_tool import CustomSerperTool
+
+# Setup logging for error tracking (internal only, not shown to user)
+logger = logging.getLogger(__name__)
 
 #Agent 2 - Search Engine Agent
 class SingleSearchResult(BaseModel):
@@ -24,7 +28,9 @@ search_engine_agent = Agent(
     backstory="The agent is designed to help Tunisian Customs identify illicit products by searching for products based on the suggested search queries from online marketplaces.",
     llm=basic_llm,
     verbose=True,
-    tools=[CustomSerperTool()]
+    tools=[CustomSerperTool()],
+    allow_delegation=False,  # Prevent delegation to avoid additional error points
+    max_iter=10,  # Limit iterations to prevent infinite loops
 )
 
 search_engine_task = Task(
@@ -44,5 +50,8 @@ search_engine_task = Task(
     expected_output="A JSON object containing the search results for suspicious products.",
     output_json=AllSearchResults,
     output_file=os.path.join(output_dir, "step_2_search_results.json"),
-    agent=search_engine_agent
+    agent=search_engine_agent,
+    async_execution=False,  # Run synchronously to better handle errors
+    timeout=300,  # 5 minute timeout to prevent hanging
 )
+ 

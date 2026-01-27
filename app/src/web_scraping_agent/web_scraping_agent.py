@@ -1,11 +1,14 @@
 # Developed by Montassar Bellah Abdallah
 
+import logging
 from crewai import Agent, Task
 from config import scraping_llm, output_dir
 import os
 from .tools.crawl4ai_tool import Crawl4AIScrapeWebsiteTool
 from .schema import AllExtractedProducts
 
+# Setup logging for error tracking (internal only, not shown to user)
+logger = logging.getLogger(__name__)
 
 # Agent 3 - Web Scraping Agent
 
@@ -16,6 +19,9 @@ scraping_agent = Agent(
     llm=scraping_llm,
     tools=[Crawl4AIScrapeWebsiteTool()],
     verbose=True,
+    allow_delegation=False,  # Prevent delegation to avoid additional error points
+    max_iter=15,  # Limit iterations to prevent infinite loops
+    max_rpm=60,  # Respect rate limits
 )
 
 scraping_task = Task(
@@ -36,6 +42,9 @@ scraping_task = Task(
     expected_output="A JSON object containing extracted product details with suspicion indicators",
     output_json=AllExtractedProducts,
     output_file=os.path.join(output_dir, "step_3_scraped_products.json"),
-    #max_retries=10,
-    agent=scraping_agent
+    agent=scraping_agent,
+    async_execution=False,  # Run synchronously to better handle errors
+    timeout=600,  # 10 minute timeout for web scraping tasks
+    max_retries=3,  # Limit retries to prevent infinite loops
 )
+ 
