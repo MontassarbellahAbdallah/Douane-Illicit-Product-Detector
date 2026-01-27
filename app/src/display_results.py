@@ -4,6 +4,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import json
 from typing import List, Dict
+from datetime import datetime
 import os
 import sys
 
@@ -16,7 +17,7 @@ def decode_unicode_escapes(text: str) -> str:
     """Decode Unicode escape sequences in a string."""
     if isinstance(text, str):
         try:
-            return text.encode('utf-8').decode('unicode_escape')
+            return text.encode("utf-8").decode("unicode_escape")
         except (UnicodeDecodeError, UnicodeEncodeError):
             return text
     return text
@@ -31,8 +32,8 @@ st.set_page_config(
 
 # Custom CSS for premium styling
 def load_css():
-    css_file_path = os.path.join(os.path.dirname(__file__), '..', 'styles', 'style.css')
-    with open(css_file_path, 'r', encoding='utf-8') as f:
+    css_file_path = os.path.join(os.path.dirname(__file__), "..", "styles", "style.css")
+    with open(css_file_path, "r", encoding="utf-8") as f:
         css_content = f.read()
     st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
 
@@ -48,8 +49,8 @@ def render_header():
 # Component: Metrics Section
 def render_metrics(products: List[Dict]):
     total_products = len(products)
-    avg_suspicion = sum(p['suspicion_score'] for p in products) / total_products if total_products > 0 else 0
-    high_risk = sum(1 for p in products if p['suspicion_score'] >= 70)
+    avg_suspicion = sum(p["suspicion_score"] for p in products) / total_products if total_products > 0 else 0
+    high_risk = sum(1 for p in products if p["suspicion_score"] >= 70)
     
     col1, col2, col3 = st.columns(3)
     
@@ -236,9 +237,37 @@ def filter_products(products: List[Dict], min_score: int, max_score: int):
 
 # Main App
 def main():
+    # Initialize session state for WHOIS results
+    if 'whois_result' not in st.session_state:
+        st.session_state['whois_result'] = None
+
     load_css()
 
     render_header()
+
+    # WHOIS Search Feature in Sidebar
+    with st.sidebar:
+        st.markdown("### 🌐 Recherche WHOIS")
+        domain_input = st.text_input(
+            "Entrez un nom de domaine",
+            value="example.com",
+            help="Ex: google.com, openai.com"
+        )
+        if st.button("Rechercher WHOIS"):
+            if domain_input:
+                import whois # Import whois here to avoid global import issues if not needed
+                with st.spinner(f"Recherche WHOIS pour {domain_input}..."):
+                    try:
+                        w = whois.whois(domain_input)
+                        # Convert datetime objects to strings for display
+                        whois_info = {k: str(v) if isinstance(v, datetime) else v for k, v in dict(w).items()}
+                        st.session_state['whois_result'] = {"domain": domain_input, "info": whois_info}
+                    except Exception as e:
+                        st.session_state['whois_result'] = {"domain": domain_input, "error": str(e)}
+            else:
+                st.sidebar.warning("Veuillez entrer un nom de domaine.")
+
+        st.divider() # Add a divider for visual separation
 
     st.sidebar.title("Paramètres d'Analyse")
     product_category_input = st.sidebar.text_input(
@@ -253,6 +282,16 @@ def main():
         help="Entrez les plateformes (domaines) à exclure, une par ligne."
     )
     excluded_platforms_list = [p.strip() for p in excluded_platforms_input.split('\n') if p.strip()]
+
+    # Display WHOIS results if available and not currently running analysis
+    if st.session_state['whois_result'] and not st.session_state.get('analysis_started', False):
+        st.markdown("## Informations WHOIS")
+        result = st.session_state['whois_result']
+        if "error" in result:
+            st.error(f"Erreur lors de la recherche WHOIS pour {result['domain']}: {result['error']}")
+        else:
+            st.json(result['info'])
+        st.divider()
 
     if st.sidebar.button("Démarrer l'Analyse 🚀") or st.session_state.get('analysis_started', False):
         st.session_state['analysis_started'] = True
