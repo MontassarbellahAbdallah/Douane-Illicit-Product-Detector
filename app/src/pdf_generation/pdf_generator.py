@@ -555,6 +555,7 @@ class PDFGenerator:
                         whois_info = {}
                     
                     if whois_info and 'error' not in whois_info:
+                        # Add basic WHOIS info to product details
                         domain_name = whois_info.get('domain_name', 'Non disponible')
                         registrar = whois_info.get('registrar', 'Non disponible')
                         creation_date = whois_info.get('creation_date', 'Non disponible')
@@ -564,35 +565,156 @@ class PDFGenerator:
                             ["Registrar:", registrar],
                             ["Date de création:", str(creation_date)]
                         ])
+                        
+                        # Suspicious Pattern Detection
+                        # story.append(Paragraph("⚠️ ANALYSE DE PATRONS SUSPECTS", self.styles['FieldLabel']))
+                        
+                        # Add product details to suspicious patterns section
+                        product_table = Table(product_details, colWidths=[150, 350])
+                        product_table.setStyle(TableStyle([
+                            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+                            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#fef3c7')),
+                            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                            ('FONTSIZE', (0, 0), (-1, -1), 9),
+                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                            ('TOPPADDING', (0, 0), (-1, -1), 6),
+                            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                        ]))
+                        story.append(product_table)
+                        
+                        story.append(Spacer(1, 10))
+                        
+                        # Add suspicion reasons to suspicious patterns section
+                        suspicion_reasons = product.get('suspicion_reasons', [])
+                        if suspicion_reasons:
+                            story.append(Paragraph("Raisons de suspicion:", self.styles['FieldLabel']))
+                            for reason in suspicion_reasons:
+                                story.append(Paragraph(f"• {reason}", self.styles['FieldValue']))
+                        else:
+                            story.append(Paragraph("Raisons de suspicion: Aucune raison spécifique identifiée", self.styles['FieldValue']))
+                        
+                        story.append(Spacer(1, 15))
+                        
+                        # Add comprehensive WHOIS analysis section
+                        story.append(Paragraph("📋 INFORMATIONS WHOIS DÉTAILLÉES", self.styles['FieldLabel']))
+                        story.append(Spacer(1, 5))
+                        
+                        # Domain Registration Section
+                        story.append(Paragraph("Domaine et Enregistrement:", self.styles['FieldLabel']))
+                        domain_data = []
+                        
+                        # Basic domain info
+                        domain_fields = [
+                            ('domain_name', 'Nom de domaine'),
+                            ('registrar', 'Registrar'),
+                            ('registrar_url', 'URL du Registrar'),
+                            ('registrar_iana_id', 'ID IANA du Registrar'),
+                            ('whois_server', 'Serveur WHOIS'),
+                            ('creation_date', 'Date de création'),
+                            ('updated_date', 'Date de mise à jour'),
+                            ('expiration_date', 'Date d\'expiration'),
+                            ('status', 'Statut'),
+                            ('dnssec', 'DNSSEC')
+                        ]
+                        
+                        for field, label in domain_fields:
+                            value = whois_info.get(field)
+                            if value is not None:
+                                domain_data.append([label, self._safe_str(value)])
+                        
+                        if domain_data:
+                            domain_table = Table(domain_data, colWidths=[150, 350])
+                            domain_table.setStyle(TableStyle([
+                                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+                                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f9ff')),
+                                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                            ]))
+                            story.append(domain_table)
+                        
+                        # Contact Information Section
+                        contact_sections = [
+                            ('registrant', 'Contact Registrant'),
+                            ('admin', 'Contact Administratif'),
+                            ('tech', 'Contact Technique')
+                        ]
+                        
+                        for contact_type, section_title in contact_sections:
+                            contact_data = []
+                            
+                            # Check if this contact type exists
+                            contact_prefix = contact_type + '_'
+                            contact_fields = [
+                                (contact_prefix + 'name', 'Nom'),
+                                (contact_prefix + 'first_name', 'Prénom'),
+                                (contact_prefix + 'organization', 'Organisation'),
+                                (contact_prefix + 'address', 'Adresse'),
+                                (contact_prefix + 'address2', 'Adresse (suite)'),
+                                (contact_prefix + 'city', 'Ville'),
+                                (contact_prefix + 'state', 'État/Région'),
+                                (contact_prefix + 'zipcode', 'Code postal'),
+                                (contact_prefix + 'country', 'Pays'),
+                                (contact_prefix + 'phone', 'Téléphone'),
+                                (contact_prefix + 'fax', 'Fax'),
+                                (contact_prefix + 'email', 'Email')
+                            ]
+                            
+                            for field, label in contact_fields:
+                                value = whois_info.get(field)
+                                if value is not None:
+                                    contact_data.append([label, self._safe_str(value)])
+                            
+                            if contact_data:
+                                story.append(Paragraph(section_title + ":", self.styles['FieldLabel']))
+                                contact_table = Table(contact_data, colWidths=[150, 350])
+                                contact_table.setStyle(TableStyle([
+                                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+                                    ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3f4f6')),
+                                    ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                                    ('FONTSIZE', (0, 0), (-1, -1), 9),
+                                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                                    ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                                    ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                                ]))
+                                story.append(contact_table)
+                        
+                        # Name Servers Section
+                        name_servers = whois_info.get('name_servers') or whois_info.get('nameservers')
+                        if name_servers:
+                            story.append(Paragraph("Serveurs de Noms:", self.styles['FieldLabel']))
+                            ns_data = [["Serveurs de noms:", ", ".join(self._safe_str(ns) for ns in name_servers)]]
+                            ns_table = Table(ns_data, colWidths=[150, 350])
+                            ns_table.setStyle(TableStyle([
+                                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+                                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#fef3c7')),
+                                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                            ]))
+                            story.append(ns_table)
+                        
+                        story.append(Spacer(1, 15))
                     elif whois_info and 'error' in whois_info:
                         product_details.append(["Informations WHOIS:", f"Erreur: {whois_info['error']}"])
                     else:
                         product_details.append(["Informations WHOIS:", "Non disponibles"])
-                    
-                    product_table = Table(product_details, colWidths=[150, 350])
-                    product_table.setStyle(TableStyle([
-                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
-                        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f9fafb')),
-                        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-                        ('FONTSIZE', (0, 0), (-1, -1), 9),
-                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-                        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-                        ('TOPPADDING', (0, 0), (-1, -1), 6),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                    ]))
-                    
-                    story.append(product_table)
-                    
-                    # Suspicion reasons
-                    suspicion_reasons = product.get('suspicion_reasons', [])
-                    if suspicion_reasons:
-                        story.append(Paragraph("Raisons de suspicion:", self.styles['FieldLabel']))
-                        for reason in suspicion_reasons:
-                            story.append(Paragraph(f"• {reason}", self.styles['FieldValue']))
-                    else:
-                        story.append(Paragraph("Raisons de suspicion: Aucune raison spécifique identifiée", self.styles['FieldValue']))
                     
                     story.append(Spacer(1, 15))
                     
