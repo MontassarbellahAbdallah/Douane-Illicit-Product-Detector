@@ -291,7 +291,7 @@ def main():
 
     excluded_platforms_input = st.sidebar.text_area(
         "Plateformes à exclure (une par ligne)",
-        value="mail.9annas.tn",
+        value="", #added_platforms_input
         help="Entrez les plateformes (domaines) à exclure, une par ligne."
     )
     excluded_platforms_list = [p.strip() for p in excluded_platforms_input.split('\n') if p.strip()]
