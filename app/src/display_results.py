@@ -324,7 +324,7 @@ def main():
         st.session_state['analysis_started'] = True
         st.session_state['product_category'] = product_category_input
         st.session_state['excluded_platforms_list'] = excluded_platforms_list
-
+    st.sidebar.markdown("Developpé par **Montassar Bellah Abdallah**")
     if st.session_state.get('analysis_started'):
         product_category_to_analyze = st.session_state['product_category']
         excluded_platforms_to_analyze = st.session_state['excluded_platforms_list']
