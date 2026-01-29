@@ -12,7 +12,7 @@ import sys
 # Add the parent directory of main_crewai.py to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 from main_crewai import run_analysis # Import the refactored function
-from pdf_generation import generate_whois_pdf # Import PDF generation module
+from pdf_generation import generate_whois_pdf, generate_analysis_pdf # Import PDF generation module
 
 # Add the parent directory of main_crewai.py to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
@@ -23,9 +23,20 @@ def decode_unicode_escapes(text: str) -> str:
     """Decode Unicode escape sequences in a string."""
     if isinstance(text, str):
         try:
-            return text.encode("utf-8").decode("unicode_escape")
+            # First try to decode unicode escapes
+            decoded = text.encode("utf-8").decode("unicode_escape")
+            # Then ensure proper UTF-8 encoding for display
+            return decoded.encode("utf-8").decode("utf-8")
         except (UnicodeDecodeError, UnicodeEncodeError):
-            return text
+            try:
+                # Fallback: try direct UTF-8 decoding
+                return text.encode("latin1").decode("utf-8")
+            except:
+                try:
+                    # Additional fallback for double-encoded UTF-8
+                    return text.encode("utf-8").decode("utf-8", errors="ignore")
+                except:
+                    return text
     return text
 
 # Page configuration
@@ -285,7 +296,7 @@ def main():
     )
     excluded_platforms_list = [p.strip() for p in excluded_platforms_input.split('\n') if p.strip()]
 
-    # Display WHOIS results if available and not currently running analysis
+        # Display WHOIS results if available and not currently running analysis
     if st.session_state['whois_result'] and not st.session_state.get('analysis_started', False):
         st.markdown("## Informations WHOIS")
         result = st.session_state['whois_result']
@@ -437,6 +448,32 @@ def main():
         # Metrics
         render_metrics(products)
 
+        # PDF Download Button for Analysis Results
+        st.markdown("---")
+        st.markdown("### 📄 Télécharger le Rapport d'Analyse")
+        
+        # Determine if fallback data is being used
+        using_fallback = not os.path.exists(os.path.join(os.path.dirname(__file__), 'ai-agent-output', 'step_3_scraped_products.json'))
+        
+        # Get the product category from session state
+        product_category_to_analyze = st.session_state.get('product_category', 'analyse')
+        
+        try:
+            pdf_bytes = generate_analysis_pdf(
+                product_category_to_analyze, 
+                products, 
+                unscraped_results, 
+                using_fallback
+            )
+            st.download_button(
+                label="📥 Télécharger le Rapport PDF",
+                data=pdf_bytes,
+                file_name=f"analyse_produits_{product_category_to_analyze.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                mime="application/pdf",
+                help="Télécharger le rapport d'analyse complet au format PDF"
+            )
+        except Exception as e:
+            st.error(f"Erreur lors de la génération du PDF d'analyse: {str(e)}")
 
         # Filter Products
         filtered_products = filter_products(products, min_score, max_score)
