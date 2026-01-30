@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y \
     libgbm1 \
     libxss1 \
     libasound2 \
+    libglib2.0-0 \
+    libx11-6 \
+    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

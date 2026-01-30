@@ -1,15 +1,18 @@
 #!/bin/bash
 
-# Run the main crew AI workflow
-echo "Starting CrewAI workflow..."
-python main_crewai.py
+# Set error handling
+set -e
 
-# Check if crew completed successfully
-if [ $? -eq 0 ]; then
-    echo "CrewAI workflow completed successfully. Starting Streamlit display..."
-    # Start Streamlit server
-    streamlit run display_results.py
-else
-    echo "CrewAI workflow failed. Exiting..."
+# Check required environment variables
+if [ -z "$GOOGLE_API_KEY" ]; then
+    echo "ERROR: GOOGLE_API_KEY environment variable is required"
     exit 1
 fi
+
+# Create necessary directories
+mkdir -p ai-agent-output
+mkdir -p fallback
+
+echo "Starting Streamlit server..."
+# Start Streamlit with proper signal handling
+streamlit run display_results.py --server.port=8501 --server.headless=true
